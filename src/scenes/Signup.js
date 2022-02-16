@@ -1,12 +1,34 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { getAuth, createUserWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
+import { app } from '../ConnectAuth';
 
-export default function Signup() {
+
+
+export default function Signup( { setUser }) {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const navigate = useNavigate()
+    const provider = new GoogleAuthProvider();
+    const auth = getAuth(app);
     const handleFormSubmit = (event) => {
         event.preventDefault();
-        alert(`Trying to sign-up as ${email}`);
+        createUserWithEmailAndPassword(auth, email, password)
+        .then(result => {
+            //setUser
+            setUser(result.user)//got this prop from the parent (app.js)
+            // navigate to home
+            navigate('/')
+        })
+        .catch(alert)
+    }
+    const handleGoogleLogin = () => {
+        signInWithPopup(auth, provider)
+        .then(result => {
+            setUser(result.user)
+            navigate('/')
+        })
+        .catch(alert)
     }
     return (
     <>
@@ -19,6 +41,11 @@ export default function Signup() {
             <br />
             <input type="submit" value="Sign up" />
         </form>
+        <button onClick={handleGoogleLogin} 
+        style={{backgroundColor: 'black', 
+        color: 'white', 
+        border: 'none'}}
+        >Sing in with Google</button>
 
         <p>Already a user? <Link to="/login">Login</Link></p>
     </>
