@@ -1,16 +1,25 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { getAuth, signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
 import { app } from '../ConnectAuth';
 
+import Button from 'react-bootstrap/Button';
 
 
-export default function Login({ setUser }) {
+export default function Login({ setUser, user }) {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const navigate = useNavigate()
-    const provider = new GoogleAuthProvider();
     const auth = getAuth(app);
+    const provider = new GoogleAuthProvider();
+    
+    useEffect(() => {
+        const localUser = localStorage.getItem('displayName')
+        console.log('localUser from LS', localUser)
+        if(localUser) setUser(localUser)
+    }, [])
+
+    
     const handleFormSubmit = (event) => {
         event.preventDefault();
         signInWithEmailAndPassword(auth, email, password)
@@ -22,14 +31,25 @@ export default function Login({ setUser }) {
         })
         .catch(alert)
     }
+    
+
     const handleGoogleLogin = () => {
         signInWithPopup(auth, provider)
         .then(result => {
             setUser(result.user)
+            localStorage.setItem('displayName', result.user.displayName)
+            localStorage.setItem('avatar', result.user.photoURL)
+            localStorage.setItem('uid', result.user.uid)
+
+            console.log('this is my result', result.user.displayName)
             navigate('/')
+            
         })
         .catch(alert)
     }
+
+    console.log('here is my user from my parent App component', user)
+
     return (
     <>
         <h1>Login</h1>
@@ -45,7 +65,8 @@ export default function Login({ setUser }) {
         style={{backgroundColor: 'black', 
         color: 'white', 
         border: 'none'}}
-        >Sing in with Google</button>
+        >Sign in with Google</button>
+        <Button>Test</Button>
 
         <p>Not a user? <Link to="/signup">Sign Up</Link></p>
     </>
